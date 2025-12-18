@@ -1,7 +1,6 @@
 'use client';
 
 import config from '@/rfc.config';
-import { getColorSVG, getMonoSVG, getWhiteSVG } from '@zooai/logo';
 
 interface LogoProps {
   size?: number;
@@ -9,8 +8,91 @@ interface LogoProps {
   variant?: 'color' | 'white' | 'mono';
 }
 
+// Zoo logo SVG embedded directly to avoid local path dependency
+const LOGO_SETTINGS = {
+  color: {
+    outerRadius: 270,
+    outerX: 512,
+    outerY: 511,
+    circleRadius: 234,
+    greenX: 513,
+    greenY: 369,
+    redX: 365,
+    redY: 595,
+    blueX: 643,
+    blueY: 595
+  },
+  mono: {
+    outerRadius: 283,
+    outerX: 508,
+    outerY: 510,
+    strokeWidth: 33,
+    outerStrokeWidth: 36
+  }
+};
+
+function getColorSVG() {
+  const s = LOGO_SETTINGS.color;
+  return `<svg width="100%" height="100%" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="outerCircleColor">
+        <circle cx="${s.outerX}" cy="${s.outerY}" r="${s.outerRadius}"/>
+      </clipPath>
+      <clipPath id="greenClip">
+        <circle cx="${s.greenX}" cy="${s.greenY}" r="${s.circleRadius}"/>
+      </clipPath>
+      <clipPath id="redClip">
+        <circle cx="${s.redX}" cy="${s.redY}" r="${s.circleRadius}"/>
+      </clipPath>
+      <clipPath id="blueClip">
+        <circle cx="${s.blueX}" cy="${s.blueY}" r="${s.circleRadius}"/>
+      </clipPath>
+    </defs>
+    <g clip-path="url(#outerCircleColor)">
+      <circle cx="${s.greenX}" cy="${s.greenY}" r="${s.circleRadius}" fill="#00A652"/>
+      <circle cx="${s.redX}" cy="${s.redY}" r="${s.circleRadius}" fill="#ED1C24"/>
+      <circle cx="${s.blueX}" cy="${s.blueY}" r="${s.circleRadius}" fill="#2E3192"/>
+      <g clip-path="url(#greenClip)">
+        <circle cx="${s.redX}" cy="${s.redY}" r="${s.circleRadius}" fill="#FCF006"/>
+      </g>
+      <g clip-path="url(#greenClip)">
+        <circle cx="${s.blueX}" cy="${s.blueY}" r="${s.circleRadius}" fill="#01ACF1"/>
+      </g>
+      <g clip-path="url(#redClip)">
+        <circle cx="${s.blueX}" cy="${s.blueY}" r="${s.circleRadius}" fill="#EA018E"/>
+      </g>
+      <g clip-path="url(#greenClip)">
+        <g clip-path="url(#redClip)">
+          <circle cx="${s.blueX}" cy="${s.blueY}" r="${s.circleRadius}" fill="#FFFFFF"/>
+        </g>
+      </g>
+    </g>
+  </svg>`;
+}
+
+function getMonoSVG() {
+  const c = LOGO_SETTINGS.color;
+  const m = LOGO_SETTINGS.mono;
+  return `<svg width="100%" height="100%" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="outerCircleMono">
+        <circle cx="${m.outerX}" cy="${m.outerY}" r="${m.outerRadius}"></circle>
+      </clipPath>
+    </defs>
+    <g clip-path="url(#outerCircleMono)">
+      <circle cx="${c.greenX}" cy="${c.greenY}" r="${c.circleRadius}" fill="none" stroke="black" stroke-width="${m.strokeWidth}"></circle>
+      <circle cx="${c.redX}" cy="${c.redY}" r="${c.circleRadius}" fill="none" stroke="black" stroke-width="${m.strokeWidth}"></circle>
+      <circle cx="${c.blueX}" cy="${c.blueY}" r="${c.circleRadius}" fill="none" stroke="black" stroke-width="${m.strokeWidth}"></circle>
+      <circle cx="${m.outerX}" cy="${m.outerY}" r="${m.outerRadius - m.outerStrokeWidth / 2}" fill="none" stroke="black" stroke-width="${m.outerStrokeWidth}"></circle>
+    </g>
+  </svg>`;
+}
+
+function getWhiteSVG() {
+  return getMonoSVG().replace(/stroke="black"/g, 'stroke="white"');
+}
+
 export function Logo({ size = 24, className = '', variant = 'color' }: LogoProps) {
-  // Get SVG string and modify it to be responsive
   let svg = '';
   switch (variant) {
     case 'mono':
@@ -23,16 +105,11 @@ export function Logo({ size = 24, className = '', variant = 'color' }: LogoProps
       svg = getColorSVG();
   }
 
-  // Remove hardcoded width/height from SVG and add 100% to fill container
-  const responsiveSvg = svg
-    .replace(/width="\d+"/, 'width="100%"')
-    .replace(/height="\d+"/, 'height="100%"');
-
   return (
     <div
       className={className}
       style={{ width: size, height: size }}
-      dangerouslySetInnerHTML={{ __html: responsiveSvg }}
+      dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
 }
